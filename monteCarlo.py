@@ -10,7 +10,7 @@ import threading;
 IMG_SIZE = (0,0);
 GENERATIONS = 100000;
 ATTEMPTS_PER_GENERATION = 1000;
-
+NUMBER_OF_SIDES = 3;
 app = Flask(__name__);
 
 generation = 0;
@@ -29,17 +29,20 @@ def video_feed():
 def index(): 
   return render_template('index.html',generation=generation,svgString=Markup(fullSvgString),imgSize = IMG_SIZE);
 
-def random_ellipse(image):
-  center_coordinates = (random.randrange(image.shape[1] + 1),random.randrange(image.shape[0] + 1));
-  axesLength = (random.randrange(image.shape[0] + 1),random.randrange(image.shape[1] + 1));
-  angle = random.randrange(360);
-  startAngle = 0;
-  endAngle = 360;
+def random_polygon(image):
+  points = []
+  pointString = ""
+  for i in range (0, 3):
+    currentpoint = (random.randrange(image.shape[1] + 1),random.randrange(image.shape[0] + 1))
+    points.append(currentpoint)
+    pointString += str(currentpoint[0]) + ',' + str(currentpoint[1]) + ' '
+  #points = points.reshape(-1,1,2)
   color = (random.randrange(256),random.randrange(256),random.randrange(256));
   thickness = -1;
   answer = image.copy();
-  answer = cv2.ellipse(answer,center_coordinates,axesLength,angle,startAngle,endAngle,color,thickness);
-  svgString = '<ellipse cx="%d" cy="%d" rx="%d" ry="%d" style="fill:rgb(%d,%d,%d)" transform="rotate(%d %d %d)"></ellipse>' % (*center_coordinates,*axesLength,color[2],color[1],color[0],angle,*center_coordinates);
+  #print([points])
+  answer = cv2.fillPoly(answer,np.array([points]),color);
+  svgString = '<polygon points="' + pointString + '" style="fill:rgb(%d,%d,%d)"></polygon>' % (color[2],color[1],color[0]);
   return (answer,svgString);
 
 def start_server():
@@ -80,7 +83,7 @@ def __main__():
     best_dist = dist(image,my_image);
     best_svg = "";
     for attempt in range(0,ATTEMPTS_PER_GENERATION):
-      tmp,svg = random_ellipse(my_image);
+      tmp,svg = random_polygon(my_image);
       tmp_dist = dist(image,tmp);
       if(tmp_dist < best_dist):
         best = tmp;
