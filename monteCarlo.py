@@ -31,15 +31,15 @@ def index():
 
 def random_ellipse(image):
   center_coordinates = (random.randrange(image.shape[1] + 1),random.randrange(image.shape[0] + 1));
-  axesLength = (random.randrange(image.shape[0] + 1),random.randrange(image.shape[1] + 1));
+  radius = random.randrange(image.shape[0] + 1);
   angle = random.randrange(360);
   startAngle = 0;
   endAngle = 360;
   color = (random.randrange(256),random.randrange(256),random.randrange(256));
   thickness = -1;
   answer = image.copy();
-  answer = cv2.ellipse(answer,center_coordinates,axesLength,angle,startAngle,endAngle,color,thickness);
-  svgString = '<ellipse cx="%d" cy="%d" rx="%d" ry="%d" style="fill:rgb(%d,%d,%d)" transform="rotate(%d %d %d)"></ellipse>' % (*center_coordinates,*axesLength,color[2],color[1],color[0],angle,*center_coordinates);
+  answer = cv2.circle(answer,center_coordinates,radius,color,thickness);
+  svgString = '<circle cx="%d" cy="%d" r="%d" style="fill:rgb(%d,%d,%d)"></circle>' % (*center_coordinates,radius,color[2],color[1],color[0]);
   return (answer,svgString);
 
 def start_server():
