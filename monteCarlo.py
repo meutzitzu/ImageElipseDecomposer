@@ -36,7 +36,7 @@ def random_ellipse(image):
   thickness = -1;
   answer = image.copy();
   answer = cv2.rectangle(answer,start_coordinates,end_coordinates ,color,thickness);
-  svgString = '<rect width="%d" height="%d" transform="translate(%d, %d)" style="fill:rgb(%d,%d,%d)"></rect>' % (start_coordinates[0]-end_coordinates[0],start_coordinates[1]-end_coordinates[1],*start_coordinates,color[2],color[1],color[0]);
+  svgString = '<rect width="%d" height="%d" x="%d" y="%d" style="fill:rgb(%d,%d,%d)"></rect>' % (abs(end_coordinates[0]-start_coordinates[0]),abs(end_coordinates[1]-start_coordinates[1]),min(start_coordinates[0],end_coordinates[0]),min(start_coordinates[1],end_coordinates[1]),color[2],color[1],color[0]);
   return (answer,svgString);
 
 def start_server():
