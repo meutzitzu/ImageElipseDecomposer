@@ -9,7 +9,7 @@ from flask import Flask,Response,render_template,Markup;
 import threading;
 
 IMG_SIZE = (0,0);
-GENERATIONS = 100000;
+GENERATIONS = 2000;
 ATTEMPTS_PER_GENERATION = 1000;
 
 app = Flask(__name__);
@@ -80,7 +80,7 @@ def random_rectangle(image):
   svgString = '<rect width="%d" height="%d" x="%d" y="%d" style="fill:rgb(%d,%d,%d)"></rect>' % (abs(end_coordinates[0]-start_coordinates[0]),abs(end_coordinates[1]-start_coordinates[1]),min(start_coordinates[0],end_coordinates[0]),min(start_coordinates[1],end_coordinates[1]),color[2],color[1],color[0]);
   return (answer,svgString);
 
-def random_square(image):
+def random_square(image, gen):
   center_coordinates = (random.randrange(image.shape[1] + 1),random.randrange(image.shape[0] + 1))
   size = random.randrange(image.shape[0] + 1)
   angle = random.randrange(90)/180*math.pi
@@ -93,7 +93,7 @@ def random_square(image):
             (center_coordinates[0] +int( size*math.sin(angle)),center_coordinates[1] +int(-size*math.cos(angle)))
             ] 
   answer = cv2.fillPoly(answer,np.array([vertices]),color)
-  svgString = '<polygon points="%d,%d %d,%d %d,%d %d,%d" style="fill:rgb(%d,%d,%d)"/>' % (*vertices[0],*vertices[1],*vertices[2],*vertices[3],color[2],color[1],color[0])
+  svgString = '<polygon class="el" points="%d,%d %d,%d %d,%d %d,%d" style="fill:rgb(%d,%d,%d); --order:%d"/>' % (*vertices[0],*vertices[1],*vertices[2],*vertices[3],color[2],color[1],color[0],gen)
   return (answer,svgString)
 
 
@@ -129,7 +129,7 @@ def __main__():
   log = open(image_path + "_log.csv","w")
   global svgFile
   svgFile = open(image_path + ".svg","w")
-  svgFile.write('<svg>')
+  svgFile.write('<svg>\n')
 
   threading.Thread(target=start_server).start()
   for gen in range(0,GENERATIONS):
@@ -147,7 +147,7 @@ def __main__():
       elif(mode == "r"):
         tmp,svg = random_rectangle(my_image)
       elif(mode == "q"):
-        tmp,svg = random_square(my_image)
+        tmp,svg = random_square(my_image, gen)
       tmp_dist = dist(image,tmp)
       if(tmp_dist < best_dist):
         best = tmp
@@ -161,14 +161,16 @@ def __main__():
     output_image = my_image
     global generation
     generation = gen
-    if(gen % 1000 == 0):
-      cv2.imwrite(image_path + '_generation ' + str(gen) + '.png', my_image)
+    if(gen % 500 == 0):
+      cv2.imwrite(image_path + '_gen' + str(gen) + '.png', my_image)
 
 try:
   __main__()
 except KeyboardInterrupt:
   try:
-    svgFile.write("</svg>")
+    svgFile.write(
+"<style>\n.el {\n\ttransform-origin: initial;\n\tanimation: dropIn calc(var(--order) * 30ms) ease forwards;\n}\n@keyframes dropIn {\n\tfrom{transform: scale(0);}\n\tto{transform: scale(1);}\n}\n</style>\n</svg>"
+)
   except:
     print("weird...")
 
